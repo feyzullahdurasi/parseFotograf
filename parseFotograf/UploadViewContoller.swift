@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Parse
 
 class UploadViewContoller: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
@@ -49,6 +50,35 @@ class UploadViewContoller: UIViewController, UIImagePickerControllerDelegate, UI
     
     @IBAction func paylasButtonClicked(_ sender: Any) {
         
+        paylasButton.isEnabled = false
+        let post = PFObject(className: "Post")
+        
+        let data = imageTextField.image?.jpegData(compressionQuality: 0.5)
+        if let data = data {
+            if PFUser.current() != nil {
+                let parseImage = PFFileObject(name: "image.jpg", data: data)
+                
+                post["postgorsel"] = parseImage
+                post["postYorum"] = yorumTextField.text!
+                post["postsahibi"] = PFUser.current()!.username!
+                
+                post.saveInBackground { success, error in
+                    if error != nil {
+                        let alert = UIAlertController(title: "hata", message: error?.localizedDescription ?? "hata", preferredStyle: .alert)
+                        let okButton = UIAlertAction(title: "OK", style: .default)
+                        alert.addAction(okButton)
+                        self.present(alert, animated: true, completion: nil)
+                    } else {
+                        self.yorumTextField.text = ""
+                        self.imageTextField.image = UIImage(named: "gorselsec")
+                        self.tabBarController?.selectedIndex = 0
+                        
+                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "yeniPost"), object: nil)
+                        
+                    }
+                }
+            }
+        }
         
         
     }
